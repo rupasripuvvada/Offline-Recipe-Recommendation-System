@@ -1,0 +1,545 @@
+{% extends "base.html" %}
+
+{% block title %}Chef's Choice | Shelf AI Premium{% endblock %}
+
+{% block content %}
+<div class="recipe-container fade-in">
+    <!-- Premium Filter Bar -->
+    <div class="row mb-5 justify-content-center">
+        <div class="col-lg-12">
+            <div class="premium-glass-card p-4 shadow-lg border-light">
+                <form method="POST" class="row g-4 align-items-end">
+                    <div class="col-md-3">
+                        <label class="premium-label">Cuisine Experience</label>
+                        <select name="cuisine" class="premium-select">
+                            <option value="Any" {% if cuisine=='Any' %}selected{% endif %}>Universal Cuisine</option>
+                            <option value="Andhra" {% if cuisine=='Andhra' %}selected{% endif %}>Andhra</option>
+                            <option value="Hyderabadi" {% if cuisine=='Hyderabadi' %}selected{% endif %}>Hyderabadi</option>
+                            <option value="South Indian" {% if cuisine=='South Indian' %}selected{% endif %}>South Indian</option>
+                            <option value="North Indian" {% if cuisine=='North Indian' %}selected{% endif %}>North Indian</option>
+                            <option value="Bengali" {% if cuisine=='Bengali' %}selected{% endif %}>Bengali</option>
+                            <option value="Gujarati" {% if cuisine=='Gujarati' %}selected{% endif %}>Gujarati</option>
+                            <option value="Indian" {% if cuisine=='Indian' %}selected{% endif %}>Indian</option>
+                            <option value="Karnataka" {% if cuisine=='Karnataka' %}selected{% endif %}>Karnataka</option>
+                            <option value="Kashmiri" {% if cuisine=='Kashmiri' %}selected{% endif %}>Kashmiri</option>
+                            <option value="Kerala" {% if cuisine=='Kerala' %}selected{% endif %}>Kerala</option>
+                            <option value="Lucknowi" {% if cuisine=='Lucknowi' %}selected{% endif %}>Lucknowi</option>
+                            <option value="Maharashtrian" {% if cuisine=='Maharashtrian' %}selected{% endif %}>Maharashtrian</option>
+                            <option value="Nagaland" {% if cuisine=='Nagaland' %}selected{% endif %}>Nagaland</option>
+                            <option value="Uttar Pradesh" {% if cuisine=='Uttar Pradesh' %}selected{% endif %}>Uttar Pradesh</option>
+                            <option value="Udupi" {% if cuisine=='Udupi' %}selected{% endif %}>Udupi</option>
+                            <option value="Tamil Nadu" {% if cuisine=='Tamil Nadu' %}selected{% endif %}>Tamil Nadu</option>
+                            <option value="Rajasthani" {% if cuisine=='Rajasthani' %}selected{% endif %}>Rajasthani</option>
+                            <option value="Punjabi" {% if cuisine=='Punjabi' %}selected{% endif %}>Punjabi</option>
+                            <option value="Himachal" {% if cuisine=='Himachal' %}selected{% endif %}>Himachal</option>
+                            <option value="Jharkhand" {% if cuisine=='Jharkhand' %}selected{% endif %}>Jharkhand</option>
+                            <option value="Odia" {% if cuisine=='Odia' %}selected{% endif %}>Odia</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="premium-label">Lifestyles & Goals</label>
+                        <select name="diet" class="premium-select">
+                            <option value="Any" {% if diet=='Any' %}selected{% endif %}>All Diets</option>
+                            <option value="Vegetarian" {% if diet=='Vegetarian' %}selected{% endif %}>Vegetarian</option>
+                            <option value="Non Vegeterian" {% if diet=='Non Vegeterian' %}selected{% endif %}>Non-Vegeterian</option>
+                            <option value="Vegan" {% if diet=='Vegan' %}selected{% endif %}>Vegan</option>
+                            <option value="Diabetic Friendly" {% if diet=='Diabetic Friendly' %}selected{% endif %}>Diabetic Friendly</option>
+                            <option value="High Protein Vegetarian" {% if diet=='High Protein Vegetarian' %}selected{% endif %}>High Protein Vegetarian</option>
+                            <option value="High Protein Non Vegetarian" {% if diet=='High Protein Non Vegetarian' %}selected{% endif %}>High Protein Non Vegetarian</option>
+                            <option value="Eggetarian" {% if diet=='Eggetarian' %}selected{% endif %}>Eggetarian</option>
+                            <option value="No Onion No Garlic (Sattvic)" {% if diet=='No Onion No Garlic (Sattvic)' %}selected{% endif %}>No Onion No Garlic (Sattvic)</option>
+                            <option value="Gluten Free" {% if diet=='Gluten Free' %}selected{% endif %}>Gluten Free</option>
+                            <option value="Sugar Free Diet" {% if diet=='Sugar Free Diet' %}selected{% endif %}>Sugar Free Diet</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="premium-label">Occasion</label>
+                        <select name="meal" class="premium-select">
+                            <option value="Any" {% if meal=='Any' %}selected{% endif %}>Any Moment</option>
+                            <option value="Breakfast" {% if meal=='Breakfast' %}selected{% endif %}>Breakfast</option>
+                            <option value="Lunch" {% if meal=='Lunch' %}selected{% endif %}>Lunch</option>
+                            <option value="Dinner" {% if meal=='Dinner' %}selected{% endif %}>Dinner</option>
+                            <option value="Snack" {% if meal=='Snack' %}selected{% endif %}>Snack</option>
+                            <option value="Main Course" {% if meal=='Main Course' %}selected{% endif %}>Main Course</option>
+                            <option value="Dessert" {% if meal=='Dessert' %}selected{% endif %}>Dessert</option>
+                            <option value="Side Dish" {% if meal=='Side Dish' %}selected{% endif %}>Side Dish</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn-hero-sparkle w-100">
+                            <i class="fas fa-search me-2"></i>Discover Matches
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if not recipes %}
+    <div class="empty-state">
+        <div class="empty-icon-box">
+            <i class="fas fa-utensils-alt"></i>
+        </div>
+        <h2>Awaiting Your Inspiration</h2>
+        <p>No matches found for your current selection. Let's broaden our culinary horizons.</p>
+    </div>
+    {% else %}
+    <div class="row justify-content-center">
+        {% for recipe in recipes %}
+        <div class="col-lg-11">
+            <div class="recipe-card-hero">
+                <div class="row g-0 h-100">
+                    <!-- Identity Section (Left) -->
+                    <div class="col-lg-5 identity-panel p-5">
+                        <div class="top-meta d-flex justify-content-between align-items-center mb-4">
+                            <div class="score-pill">
+                                <span class="score-value">{{ recipe.final_score }}</span>
+                                <span class="score-label">MATCH</span>
+                            </div>
+                            <div class="badge-set">
+                                <span class="pill-dark">{{ recipe.cuisine }}</span>
+                                <span class="pill-outline">{{ recipe.diet }}</span>
+                            </div>
+                        </div>
+
+                        <h1 class="recipe-title mb-4">{{ recipe.name }}</h1>
+                        
+                        <div class="stats-grid mb-5">
+                            <div class="stat-item">
+                                <div class="stat-circle" style="--val: {{ (recipe.semantic_score * 100) | round }}">
+                                    <span>{{ (recipe.semantic_score * 100) | round(0) }}%</span>
+                                </div>
+                                <span class="stat-label">Semantic</span>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-circle" style="--val: {{ (recipe.coverage_score * 100) | round }}">
+                                    <span>{{ (recipe.coverage_score * 100) | round(0) }}%</span>
+                                </div>
+                                <span class="stat-label">Coverage</span>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-circle" style="--val: {{ (recipe.expiry_score * 100) | round }}">
+                                    <span>{{ (recipe.expiry_score * 100) | round(0) }}%</span>
+                                </div>
+                                <span class="stat-label">Eco-Score</span>
+                            </div>
+                        </div>
+
+                        <div class="action-stack mt-auto">
+                            <button onclick="toggleInstructions('{{ loop.index }}')" class="btn-premium-action mb-2 purple">
+                                <i class="fas fa-hand-holding-magic"></i> View Preparation Steps
+                            </button>
+                            <a href="/download_pdf/{{ recipe.name }}" class="btn-premium-action mb-2 dark">
+                                <i class="fas fa-file-pdf"></i> Export Recipe Card
+                            </a>
+                            <a href="/meal_planner/cooked/{{ recipe.name }}" class="btn-premium-action mb-2 success">
+                                <i class="fas fa-check-double"></i> Mark as Culinary Success
+                            </a>
+                            <form action="/grocery_list/add_missing" method="POST">
+                                <input type="hidden" name="missing" value="{{ recipe.missed | join(', ') }}">
+                                <button type="submit" class="btn-premium-action outline w-100">
+                                    <i class="fas fa-shopping-basket"></i> Fill My Pantry
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Detail Section (Right) -->
+                    <div class="col-lg-7 p-5 scroll-panel">
+                        <div id="quick-view-{{ loop.index }}">
+                            <div class="detail-section mb-5">
+                                <div class="section-header">
+                                    <i class="fad fa-stars text-primary"></i>
+                                    <span>Why this works</span>
+                                </div>
+                                <div class="ai-box">
+                                    {{ recipe.explanation }}
+                                </div>
+                            </div>
+
+                            <div class="row g-5">
+                                <div class="col-md-6">
+                                    <div class="section-header mb-4">
+                                        <i class="fas fa-inventory text-success"></i>
+                                        <span>Ready in Kitchen</span>
+                                    </div>
+                                    <div class="ingredient-cloud">
+                                        {% if recipe.matched %}
+                                            {% if recipe.matched is string %}
+                                                {% for ing in recipe.matched.split(', ') %}
+                                                <span class="ing-pill matched">{{ ing }}</span>
+                                                {% endfor %}
+                                            {% else %}
+                                                {% for ing in recipe.matched %}
+                                                <span class="ing-pill matched">{{ ing }}</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="none-state">None identified</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="section-header mb-4">
+                                        <i class="fas fa-shopping-bag text-primary"></i>
+                                        <span>Missing Assets</span>
+                                    </div>
+                                    <div class="ingredient-cloud">
+                                        {% if recipe.missed %}
+                                            {% if recipe.missed is string %}
+                                                {% for ing in recipe.missed.split(', ') %}
+                                                <span class="ing-pill missed">{{ ing }}</span>
+                                                {% endfor %}
+                                            {% else %}
+                                                {% for ing in recipe.missed %}
+                                                <span class="ing-pill missed">{{ ing }}</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="perfect-state">All systems go!</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instructions Panel (Hidden by default) -->
+                        <div id="instructions-{{ loop.index }}" class="instructions-panel d-none">
+                            <div class="section-header mb-4 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-hat-chef text-primary"></i>
+                                    <span>Cooking Instructions</span>
+                                </div>
+                                <button onclick="toggleInstructions('{{ loop.index }}')" class="btn-close-panel">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="instructions-content">
+                                {{ recipe.instructions | replace('\n', '<br>') | safe }}
+                            </div>
+                        </div>
+
+                        <div class="navigation-footer mt-5 pt-5 border-top">
+                            <p class="text-muted small italic mb-4">Not feeling this one? Explore further refined possibilities.</p>
+                            <a href="/recipes?cuisine={{ cuisine }}&diet={{ diet }}&meal={{ meal }}&offset={{ offset + 1 }}" 
+                               class="btn-discovery shadow-lg">
+                                Show Next Perfection <i class="fas fa-chevron-right ms-2 pulse"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleInstructions(id) {
+    const quickView = document.getElementById('quick-view-' + id);
+    const instructions = document.getElementById('instructions-' + id);
+    if (instructions.classList.contains('d-none')) {
+        instructions.classList.remove('d-none');
+        quickView.classList.add('d-none');
+    } else {
+        instructions.classList.add('d-none');
+        quickView.classList.remove('d-none');
+    }
+}
+</script>
+
+<style>
+    :root {
+        --viva-purple: #4f46e5;
+        --viva-purple-light: #eef2ff;
+        --viva-gold: #fbbf24;
+        --viva-dark: #0f172a;
+        --viva-glass: rgba(255, 255, 255, 0.85);
+    }
+
+    .identity-panel {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-right: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .recipe-card-hero {
+        background: #ffffff;
+        border-radius: 40px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+        min-height: 700px;
+    }
+
+    .recipe-title {
+        font-size: 2.85rem;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+        color: var(--viva-dark);
+    }
+
+    .premium-glass-card {
+        background: var(--viva-glass);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .premium-label {
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+        display: block;
+        letter-spacing: 0.1em;
+    }
+
+    .premium-select {
+        width: 100%;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        font-weight: 600;
+        color: #1e293b;
+        transition: all 0.3s ease;
+    }
+
+    .premium-select:focus {
+        border-color: var(--viva-purple);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+    }
+
+    .btn-hero-sparkle {
+        background: linear-gradient(45deg, var(--viva-purple), #4338ca);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: transform 0.2s;
+    }
+
+    .btn-hero-sparkle:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+    }
+
+    .score-pill {
+        background: white;
+        padding: 0.75rem 1.25rem;
+        border-radius: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .score-value {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--viva-purple);
+        line-height: 1;
+    }
+
+    .score-label {
+        font-size: 0.6rem;
+        font-weight: 800;
+        color: #94a3b8;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .stat-circle {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(closest-side, white 79%, transparent 80% 100%), conic-gradient(var(--viva-purple) calc(var(--val) * 1%), #e2e8f0 0);
+        font-weight: 800;
+        font-size: 0.8rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+    }
+
+    .btn-premium-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-radius: 15px;
+        font-weight: 700;
+        text-decoration: none !important;
+        transition: all 0.3s;
+        border: none;
+    }
+
+    .btn-premium-action.purple { background: var(--viva-purple); color: white; }
+    .btn-premium-action.dark { background: #1e293b; color: white; }
+    .btn-premium-action.success { background: #059669; color: white; }
+    .btn-premium-action.outline { border: 2px solid #e2e8f0; color: #1e293b; background: white; }
+
+    .btn-premium-action:hover {
+        transform: scale(1.02);
+        opacity: 0.9;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.85rem;
+        color: #334155;
+    }
+
+    .ai-box {
+        background: var(--viva-purple-light);
+        border-radius: 20px;
+        padding: 1.5rem;
+        border-left: 5px solid var(--viva-purple);
+        color: #475569;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .ing-pill {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+    }
+
+    .ing-pill.matched { color: #059669; border-color: #a7f3d0; background: #f0fdf4; }
+    .ing-pill.missed { color: var(--viva-purple); border-color: #ddd6fe; background: var(--viva-purple-light); }
+
+    .btn-discovery {
+        display: inline-flex;
+        align-items: center;
+        background: var(--viva-dark);
+        color: white;
+        padding: 1.25rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 800;
+        text-decoration: none !important;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .btn-discovery:hover {
+        transform: translateX(10px);
+        background: var(--viva-purple);
+    }
+
+    .instructions-panel {
+        background: white;
+        border-radius: 24px;
+        padding: 2rem;
+        border: 1px solid #e2e8f0;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .instructions-content {
+        color: #475569;
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+
+    .btn-close-panel {
+        background: #f1f5f9;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        transition: all 0.2s;
+    }
+
+    .btn-close-panel:hover {
+        background: #e2e8f0;
+        color: var(--viva-dark);
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .pulse {
+        animation: pulse-icon 1.5s infinite;
+    }
+
+    @keyframes pulse-icon {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(5px); }
+        100% { transform: translateX(0); }
+    }
+
+    .scroll-panel {
+        max-height: 700px;
+        overflow-y: auto;
+    }
+
+    .pill-dark { background: #334155; color: white; padding: 0.25rem 0.75rem; border-radius: 8px; font-weight: 700; font-size: 0.7rem; }
+    .pill-outline { border: 1px solid #334155; color: #334155; padding: 0.25rem 0.75rem; border-radius: 8px; font-weight: 700; font-size: 0.7rem; }
+
+    .none-state, .perfect-state {
+        color: #94a3b8;
+        font-style: italic;
+        font-size: 0.8rem;
+        padding: 1rem;
+        border: 1px dashed #e2e8f0;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 5rem 0;
+    }
+
+    .empty-icon-box {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 2rem;
+    }
+    .text-violet { color: var(--viva-purple); }
+</style>
+{% endblock %}
+%}

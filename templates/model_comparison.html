@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+
+{% block title %}Model Comparison - Shelf AI{% endblock %}
+
+{% block content %}
+<style>
+    .hero-section { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 3rem 0; margin-bottom: 2rem; border-radius: 0 0 20px 20px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.1); }
+    .card { border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; margin-bottom: 1.5rem; }
+    .card:hover { transform: translateY(-5px); }
+    .metric-card { padding: 1.5rem; text-align: center; height: 100%; border-radius: 12px; }
+    .metric-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #6c757d; margin-bottom: 0.5rem; }
+    .metric-value { font-size: 2rem; font-weight: 700; color: #212529; }
+    .metric-baseline { color: #dc3545; }
+    .metric-proposed { color: #198754; }
+    .improvement { font-size: 0.85rem; padding: 4px 8px; border-radius: 20px; background-color: #e8f5e9; color: #198754; font-weight: 600; display: inline-block; margin-top: 5px; }
+    .decline { background-color: #ffebee; color: #dc3545; }
+    .section-icon { color: var(--primary); font-size: 1.5rem; margin-right: 10px; }
+    .explanation-box { background-color: #f8fafc; border-left: 4px solid var(--primary); padding: 1rem; border-radius: 0 10px 10px 0; margin-top: 1rem; }
+</style>
+    <div class="hero-section text-center">
+        <h1 class="display-5 fw-bold mb-3"><i class="fas fa-balance-scale me-3"></i>Recommendation Models Comparison</h1>
+        <p class="lead mb-0">Evaluating the Baseline TF-IDF Model against the Proposed Semantic Matching Model</p>
+    </div>
+
+    <div class="container pb-5">
+        {% if error %}
+        <div class="alert alert-warning text-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+        </div>
+        {% else %}
+        
+        <!-- Executive Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-white p-4 border-0 shadow-sm">
+                    <h3 class="fw-bold mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>Why The Proposed Model is Better</h3>
+                    <p class="mb-2">The <strong>Baseline Model</strong> relies on Exact Keyword Matching and basic TF-IDF term frequencies. It struggles with synonyms, misspellings, and semantically similar ingredients (e.g., treating "sweet potato" and "potato" completely differently or failing on "tomto" instead of "tomato").</p>
+                    <p class="mb-0">The <strong>Proposed Model</strong> utilizes exactly what modern architecture expects: <strong>Semantic Embeddings</strong> via SentenceTransformers and <strong>Fuzzy NLP Matching</strong> via SpaCy. This means it inherently understands that "chicken breast" is a type of "chicken" and is much more forgiving with real-world, noisy OCR data. Furthermore, its rebalanced scoring weights emphasize Coverage (50%) over raw Semantic text similarity (30%), optimizing for practical cookability.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Scores -->
+        <h4 class="mb-3 border-bottom pb-2"><i class="fas fa-trophy section-icon"></i>Overall Performance (Classification & Quality)</h4>
+        <div class="row">
+            <!-- F1 Score Overall -->
+            <div class="col-md-4">
+                <div class="card metric-card">
+                    <div class="metric-title">F1 Score (Overall)</div>
+                    <div class="d-flex justify-content-around align-items-center mt-3">
+                        <div>
+                            <div class="text-muted small">Baseline</div>
+                            <div class="metric-value metric-baseline">{{ baseline.f1_overall }}</div>
+                        </div>
+                        <div class="text-muted"><i class="fas fa-arrow-right"></i></div>
+                        <div>
+                            <div class="text-success small fw-bold">Proposed</div>
+                            <div class="metric-value metric-proposed">{{ proposed.f1_overall }}</div>
+                        </div>
+                    </div>
+                    {% set diff_f1 = (proposed.f1_overall - baseline.f1_overall)|round(3) %}
+                    {% if diff_f1 > 0 %}
+                        <div class="improvement mt-3"><i class="fas fa-arrow-up me-1"></i>+{{ diff_f1 }} Increase</div>
+                    {% else %}
+                        <div class="improvement decline mt-3"><i class="fas fa-arrow-down me-1"></i>{{ diff_f1 }} Decrease</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- NDCG@8 -->
+            <div class="col-md-4">
+                <div class="card metric-card">
+                    <div class="metric-title">NDCG@8 (Ranking Quality)</div>
+                    <div class="d-flex justify-content-around align-items-center mt-3">
+                        <div>
+                            <div class="text-muted small">Baseline</div>
+                            <div class="metric-value metric-baseline">{{ baseline.ndcg_8 }}</div>
+                        </div>
+                        <div class="text-muted"><i class="fas fa-arrow-right"></i></div>
+                        <div>
+                            <div class="text-success small fw-bold">Proposed</div>
+                            <div class="metric-value metric-proposed">{{ proposed.ndcg_8 }}</div>
+                        </div>
+                    </div>
+                    {% set diff_ndcg = (proposed.ndcg_8 - baseline.ndcg_8)|round(3) %}
+                    {% if diff_ndcg > 0 %}
+                        <div class="improvement mt-3"><i class="fas fa-arrow-up me-1"></i>+{{ diff_ndcg }} Increase</div>
+                    {% else %}
+                        <div class="improvement decline mt-3"><i class="fas fa-arrow-down me-1"></i>{{ diff_ndcg }} Decrease</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recall -->
+            <div class="col-md-4">
+                <div class="card metric-card">
+                    <div class="metric-title">Recall (All Results)</div>
+                    <div class="d-flex justify-content-around align-items-center mt-3">
+                        <div>
+                            <div class="text-muted small">Baseline</div>
+                            <div class="metric-value metric-baseline">{{ baseline.recall }}</div>
+                        </div>
+                        <div class="text-muted"><i class="fas fa-arrow-right"></i></div>
+                        <div>
+                            <div class="text-success small fw-bold">Proposed</div>
+                            <div class="metric-value metric-proposed">{{ proposed.recall }}</div>
+                        </div>
+                    </div>
+                    {% set diff_recall = (proposed.recall - baseline.recall)|round(3) %}
+                    {% if diff_recall > 0 %}
+                        <div class="improvement mt-3"><i class="fas fa-arrow-up me-1"></i>+{{ diff_recall }} Increase</div>
+                    {% else %}
+                        <div class="improvement decline mt-3"><i class="fas fa-arrow-down me-1"></i>{{ diff_recall }} Decrease</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="explanation-box mb-5">
+            <strong>What this means:</strong> <b>F1 Score</b> measures the balance between precision and recall; the proposed model provides far more relevant recommendations overall. <b>NDCG@8</b> measures the quality of the Top 8 recommendations returned; a higher score means the proposed model places the absolute best recipes at the top of the list where the user will actually see them. <b>Recall</b> is higher because fuzzy/semantic matching finds relevant items that exact keyword matching misses completely.
+        </div>
+
+        <!-- Ranking Metrics (Top 50) -->
+        <h4 class="mb-3 border-bottom pb-2"><i class="fas fa-list-ol section-icon"></i>Ranking Metrics (Top 50 Recommendations)</h4>
+        <div class="row">
+            <!-- MRR -->
+            <div class="col-md-4">
+                <div class="card metric-card">
+                    <div class="metric-title">Mean Reciprocal Rank (MRR)</div>
+                    <div class="d-flex justify-content-around align-items-center mt-3">
+                        <div>
+                            <div class="metric-value metric-baseline">{{ baseline.mrr }}</div>
+                        </div>
+                        <div class="text-muted"><i class="fas fa-arrow-right"></i></div>
+                        <div>
+                            <div class="metric-value metric-proposed">{{ proposed.mrr }}</div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">How quickly the first highly relevant result appears</div>
+                </div>
+            </div>
+            
+            <!-- Precision@K -->
+            <div class="col-md-4">
+                <div class="card metric-card">
+                    <div class="metric-title">Precision@50</div>
+                    <div class="d-flex justify-content-around align-items-center mt-3">
+                        <div>
+                            <div class="metric-value metric-baseline">{{ baseline.precision_k }}</div>
+                        </div>
+                        <div class="text-muted"><i class="fas fa-arrow-right"></i></div>
+                        <div>
+                            <div class="metric-value metric-proposed">{{ proposed.precision_k }}</div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">% of Top 50 results that are actually cookable</div>
+                </div>
+            </div>
+            
+            <!-- Recall@K -->
+            <div class="col-md-4">
+                <div class="card metric-card">
+                    <div class="metric-title">Recall@50</div>
+                    <div class="d-flex justify-content-around align-items-center mt-3">
+                        <div>
+                            <div class="metric-value metric-baseline">{{ baseline.recall_k }}</div>
+                        </div>
+                        <div class="text-muted"><i class="fas fa-arrow-right"></i></div>
+                        <div>
+                            <div class="metric-value metric-proposed">{{ proposed.recall_k }}</div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">% of ALL cookable recipes found in the Top 50</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="explanation-box mb-5">
+            <strong>What this means:</strong> Ranking metrics determine how well the algorithm sorts results. <b>MRR</b> of 1.0 means the very first recipe recommended is highly relevant. The proposed model consistently provides better <b>Precision@50</b>, ensuring the user doesn't have to scroll past 40 bad recipes to find 10 good ones.
+        </div>
+
+        <!-- Sustainability Metrics -->
+        <h4 class="mb-3 border-bottom pb-2"><i class="fas fa-leaf section-icon"></i>SUSTAINABILITY</h4>
+        <div class="row justify-content-center">
+            <!-- Catalog Coverage -->
+            <div class="col-md-5">
+                <div class="card metric-card">
+                    <div class="metric-title">Catalog Coverage</div>
+                    <div class="d-flex justify-content-around align-items-center mt-3">
+                        <div>
+                            <div class="metric-value metric-baseline">{{ baseline.catalog_coverage }}</div>
+                        </div>
+                        <div class="text-muted"><i class="fas fa-arrow-right"></i></div>
+                        <div>
+                            <div class="metric-value metric-proposed">{{ proposed.catalog_coverage }}</div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">Percentage of recipes matchable with current inventory assets.</div>
+                </div>
+            </div>
+            
+            <!-- FWRI -->
+            <div class="col-md-5">
+                <div class="card metric-card">
+                    <div class="metric-title">Food Waste Reduction Index</div>
+                    <div class="d-flex justify-content-around align-items-center mt-3">
+                        <div>
+                            <div class="metric-value metric-baseline">{{ baseline.fwri }}</div>
+                        </div>
+                        <div class="text-muted"><i class="fas fa-arrow-right"></i></div>
+                        <div>
+                            <div class="metric-value metric-proposed">{{ proposed.fwri }}</div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">Model efficiency in prioritizing items nearing expiration.</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Visual Comparison Charts -->
+        <h4 class="mb-3 border-bottom pb-2"><i class="fas fa-chart-pie section-icon"></i>Visual Performance Comparison</h4>
+        <div class="row mb-5">
+            <!-- Radar Chart: High Level Balance -->
+            <div class="col-lg-6">
+                <div class="card p-4">
+                    <h5 class="fw-bold mb-4 text-center">Metric Balance (Radar)</h5>
+                    <div style="height: 350px;">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- Bar Chart: Ranking Efficiency -->
+            <div class="col-lg-6">
+                <div class="card p-4">
+                    <h5 class="fw-bold mb-4 text-center">Ranking Efficiency (Top 50)</h5>
+                    <div style="height: 350px;">
+                        <canvas id="rankingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="explanation-box mb-3">
+            <strong>What this means:</strong> <b>Catalog Coverage</b> ensures users aren't recommended the same 5 recipes over and over again; the proposed model surfaces a wider variety of the dataset. <b>FWRI</b> represents how strongly recommendations bias towards items that will spoil soon, a core value proposition of Shelf AI.
+        </div>
+        
+    {% endif %}
+
+    {% if not error %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const baselineData = {{ baseline | tojson if baseline else '{}' | safe }};
+        const proposedData = {{ proposed | tojson if proposed else '{}' | safe }};
+
+        // 1. Radar Chart: Model Balance
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Precision', 'Recall', 'F1 Score', 'Catalog Cov', 'FWRI'],
+                datasets: [
+                    {
+                        label: 'Baseline Model',
+                        data: [
+                            baselineData.precision, 
+                            baselineData.recall, 
+                            baselineData.f1_overall,
+                            baselineData.catalog_coverage,
+                            baselineData.fwri
+                        ],
+                        backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                        borderColor: '#dc3545',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#dc3545'
+                    },
+                    {
+                        label: 'Proposed Model',
+                        data: [
+                            proposedData.precision, 
+                            proposedData.recall, 
+                            proposedData.f1_overall,
+                            proposedData.catalog_coverage,
+                            proposedData.fwri
+                        ],
+                        backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                        borderColor: '#198754',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#198754'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 1
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // 2. Bar Chart: Ranking Metrics
+        const rankingCtx = document.getElementById('rankingChart').getContext('2d');
+        new Chart(rankingCtx, {
+            type: 'bar',
+            data: {
+                labels: ['NDCG@8', 'Precision@50', 'Recall@50', 'MRR'],
+                datasets: [
+                    {
+                        label: 'Baseline',
+                        data: [
+                            baselineData.ndcg_8,
+                            baselineData.precision_k,
+                            baselineData.recall_k,
+                            baselineData.mrr
+                        ],
+                        backgroundColor: '#dc3545',
+                        borderRadius: 5
+                    },
+                    {
+                        label: 'Proposed',
+                        data: [
+                            proposedData.ndcg_8,
+                            proposedData.precision_k,
+                            proposedData.recall_k,
+                            proposedData.mrr
+                        ],
+                        backgroundColor: '#198754',
+                        borderRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1,
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+
+{% endblock %}

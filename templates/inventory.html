@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory | Shelf AI{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-5">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h6 class="text-primary fw-bold text-uppercase ls-wide mb-2">Asset Management</h6>
+                <h1 class="fw-900 mb-0">Kitchen Dashboard</h1>
+            </div>
+            <form action="/inventory/clear" method="POST" onsubmit="return confirm('WARNING: This will permanently delete ALL items from your kitchen inventory. Proceed?')">
+                <button type="submit" class="btn btn-outline-danger px-4 py-2 rounded-pill fw-bold shadow-sm">
+                    <i class="fas fa-dumpster-fire me-2"></i> Clear All Inventory
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card text-center">
+            <h6 class="text-muted small fw-bold text-uppercase mb-2">Total Items</h6>
+            <h2 class="fw-800 mb-0">{{ summary.total }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card text-center" style="border-top: 4px solid var(--secondary);">
+            <h6 class="text-success small fw-bold text-uppercase mb-2">Fresh Assets</h6>
+            <h2 class="fw-800 mb-0 text-success">{{ summary.fresh }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card text-center" style="border-top: 4px solid var(--accent);">
+            <h6 class="text-warning small fw-bold text-uppercase mb-2">Urgent Items</h6>
+            <h2 class="fw-800 mb-0 text-warning">{{ summary.urgent }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card text-center" style="border-top: 4px solid #ef4444;">
+            <h6 class="text-danger small fw-bold text-uppercase mb-2">Expired</h6>
+            <h2 class="fw-800 mb-0 text-danger">{{ summary.wasted }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <h4 class="fw-bold mb-0">Kitchen Stock Registry</h4>
+                <div class="search-box position-relative w-50">
+                    <i class="fas fa-search position-absolute text-dim" style="left: 15px; top: 12px;"></i>
+                    <input type="text" id="inventorySearch" class="form-control ps-5 py-2 rounded-pill border-slate"
+                        placeholder="Filter inventory...">
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-viva">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Expiry</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryBody">
+                        {% for item in items %}
+                        <tr class="inventory-row">
+                            <td class="fw-bold">{{ item.item }}</td>
+                            <td>
+                                <form action="/update_quantity/{{ item.id }}" method="POST"
+                                    class="d-flex align-items-center">
+                                    <input type="text" name="quantity" value="{{ item.quantity }}"
+                                        class="form-control form-control-sm border-slate me-2" style="width: 80px;">
+                                    <button type="submit" class="btn btn-sm text-dim hover-primary p-1">
+                                        <i class="fas fa-save"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            <td><span class="text-muted small">{{ item.expiry_date.strftime('%b %d, %Y') }}</span></td>
+                            <td>
+                                <span class="badge-viva bg-{{ item.color }} text-white">
+                                    {{ item.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <form action="/mark_used/{{ item.id }}" method="POST">
+                                        <button class="btn btn-sm btn-icon-viva text-success"><i
+                                                class="fas fa-check-circle"></i></button>
+                                    </form>
+                                    <form action="/mark_wasted/{{ item.id }}" method="POST">
+                                        <button class="btn btn-sm btn-icon-viva text-danger"><i
+                                                class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="glass-card mb-4 border-primary">
+            <h5 class="fw-bold mb-4">Add Ingredient</h5>
+            <form action="/manual_add" method="POST">
+                <div class="mb-3">
+                    <label class="form-label small text-muted fw-bold">Item Name</label>
+                    <input type="text" name="item" class="form-control py-2" placeholder="e.g. Organic Milk" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small text-muted fw-bold">Quantity/Unit</label>
+                    <input type="text" name="qty" class="form-control py-2" placeholder="e.g. 500ml" required>
+                </div>
+                <button type="submit" class="btn-primary-viva w-100 py-3">Register Item</button>
+            </form>
+        </div>
+
+        <div class="glass-card">
+            <h5 class="fw-bold mb-4">Inventory Health</h5>
+            <div style="height: 250px;">
+                <canvas id="inventoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('inventoryChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Fresh', 'Urgent', 'Expired'],
+            datasets: [{
+                data: [{{ chart_data.Fresh }}, {{ chart_data.Urgent }}, {{ chart_data.Expired }}],
+        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+        hoverOffset: 15,
+        borderRadius: 5,
+        borderWidth: 5,
+        borderColor: '#ffffff'
+            }]
+        },
+        options: {
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 20, font: { weight: '600', family: 'Inter' } } }
+        },
+        cutout: '75%',
+        maintainAspectRatio: false
+    }
+    });
+
+    document.getElementById('inventorySearch').addEventListener('input', function (e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.inventory-row').forEach(row => {
+            const text = row.querySelector('td').textContent.toLowerCase();
+            row.style.display = text.includes(term) ? '' : 'none';
+        });
+    });
+</script>
+
+<style>
+    .btn-icon-viva {
+        background: transparent;
+        border: none;
+        font-size: 1.25rem;
+        transition: var(--transition);
+        padding: 0.25rem;
+    }
+
+    .btn-icon-viva:hover {
+        transform: scale(1.2);
+    }
+
+    .border-slate {
+        border: 1px solid #e2e8f0 !important;
+    }
+</style>
+{% endblock %}
