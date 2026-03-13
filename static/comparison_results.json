@@ -1,0 +1,60 @@
+{
+    "baseline": {
+        "ndcg_8": 1.0,
+        "f1_overall": 0.864,
+        "precision_k": 1.0,
+        "recall_k": 0.017,
+        "f1_k": 0.033,
+        "mrr": 1.0,
+        "ndcg_k": 1.0,
+        "precision": 1.0,
+        "recall": 0.76,
+        "f1": 0.864,
+        "tn": 147,
+        "fp": 0,
+        "fn": 716,
+        "tp": 2273,
+        "confusion_matrix": [
+            [
+                147,
+                0
+            ],
+            [
+                716,
+                2273
+            ]
+        ],
+        "catalog_coverage": 0.401,
+        "fwri": 0.311,
+        "k": 50
+    },
+    "proposed": {
+        "ndcg_8": 1.0,
+        "f1_overall": 0.958,
+        "precision_k": 1.0,
+        "recall_k": 0.022,
+        "f1_k": 0.043,
+        "mrr": 1.0,
+        "ndcg_k": 1.0,
+        "precision": 0.941,
+        "recall": 0.977,
+        "f1": 0.958,
+        "tn": 729,
+        "fp": 140,
+        "fn": 52,
+        "tp": 2215,
+        "confusion_matrix": [
+            [
+                729,
+                140
+            ],
+            [
+                52,
+                2215
+            ]
+        ],
+        "catalog_coverage": 0.171,
+        "fwri": 0.487,
+        "k": 50
+    }
+}
